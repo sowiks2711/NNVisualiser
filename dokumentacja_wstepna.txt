@@ -1,0 +1,9 @@
+Struktura modelu
+-funkcja fit
+-funkcja predict
+Struktura wag do wizualizacji
+-lista list
+-długość wejścia
+-lista ma długość równą głębokości sieci - 1
+-każda lista wewnątrz listy list ma długość równą iloczynowi sąsiadujących warstw
+-wartości listy wewnątrz listy stanowią wagi krawędzi uporządkowane alfabetycznie (np dla sieci 3x3 kolejno wagi 11,12,13,21,22,23,31,32,33)
