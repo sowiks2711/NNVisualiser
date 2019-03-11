@@ -395,6 +395,50 @@ def model(X, Y, layers_dims, learning_rate=0.0007, mini_batch_size=64, beta=0.9,
     return parameters
 
 
+def predict_dec(parameters, X):
+    """
+    This function is used to predict the results of a  L-layer neural network.
+
+    Arguments:
+    X -- data set of examples you would like to label
+    parameters -- parameters of the trained model
+
+    Returns:
+    p -- predictions for the given dataset X
+    """
+
+    # Forward propagation
+    probas, caches = L_model_forward(X, parameters)
+    predictions = (probas > 0.5)
+
+    return predictions
+
+
+def predict(X, y, parameters):
+    """
+    This function is used to predict the results of a  L-layer neural network.
+
+    Arguments:
+    X -- data set of examples you would like to label
+    parameters -- parameters of the trained model
+
+    Returns:
+    p -- predictions for the given dataset X
+    """
+
+    m = X.shape[1]
+    p = np.zeros((1, m))
+
+    # Forward propagation
+    probas, caches = L_model_forward(X, parameters)
+
+    # convert probas to 0/1 predictions
+    p = (probas > 0.5)
+
+    print("Accuracy: " + str(np.sum((p == y) / m)))
+
+    return p
+
 
 class DeepNN:
     pass
