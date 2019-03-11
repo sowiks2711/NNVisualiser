@@ -60,7 +60,7 @@ def initialize_parameters(layer_dims):
     L = len(layer_dims)            # number of layers in the network
 
     for l in range(1, L):
-        parameters["W" + str(l)] = np.random.randn(layer_dims[l], layer_dims[l-1]) * 0.01
+        parameters["W" + str(l)] = np.random.randn(layer_dims[l], layer_dims[l-1]) / np.sqrt(layer_dims[l-1])
         parameters["b" + str(l)] = np.zeros((layer_dims[l], 1))
 
         assert(parameters['W' + str(l)].shape == (layer_dims[l], layer_dims[l-1]))
@@ -319,7 +319,6 @@ def L_model_backward(AL, Y, caches):
     dAL = -(np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
 
     # Lth layer (SIGMOID -> LINEAR) gradients. Inputs: "AL, Y, caches". Outputs: "grads["dAL"], grads["dWL"], grads["dbL"]
-    current_cache = caches[L-1]
     grads["dA" + str(L)], grads["dW" + str(L)], grads["db" + str(L)] = linear_activation_backward(dAL, caches[L - 1],
                                                                                                   "sigmoid")
 

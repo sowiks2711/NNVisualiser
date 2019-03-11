@@ -123,8 +123,8 @@ class TestDeepNN(TestCase):
                                    [0.37883606, 0.],
                                    [-0.2298228, 0.]])
         assert_array_almost_equal(dW,
-                                  [[ 0.44513824, 0.37371418, -0.10478989]])
-        assert_array_almost_equal(db , [[-0.20837892]])
+                                  [[0.44513824, 0.37371418, -0.10478989]])
+        assert_array_almost_equal(db, [[-0.20837892]])
 
     def test_L_model_backwards(self):
         AL, Y_assess, caches = L_model_backward_test_case()
