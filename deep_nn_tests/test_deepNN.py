@@ -1,14 +1,18 @@
 from unittest import TestCase
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import numpy as np
-from deep_nn.deep_nn import initialize_parameters_deep, random_mini_batches, update_parameters_with_momentum
-from deep_nn_tests.test_cases import random_mini_batches_test_case, update_parameters_with_momentum_test_case
+from deep_nn.deep_nn import initialize_parameters, random_mini_batches, update_parameters_with_momentum, \
+    linear_forward, linear_activation_forward, L_model_forward, compute_cost, linear_backward, \
+    linear_activation_backward, L_model_backward
+from deep_nn_tests.test_cases import random_mini_batches_test_case, update_parameters_with_momentum_test_case, \
+    linear_forward_test_case, linear_activation_forward_test_case, L_model_forward_test_case, compute_cost_test_case, \
+    linear_backward_test_case, linear_activation_backward_test_case, L_model_backward_test_case
 
 
 # noinspection PyPep8Naming
 class TestDeepNN(TestCase):
     def test_initialize_parameters_deep(self):
-        parameters = initialize_parameters_deep([5, 4, 3])
+        parameters = initialize_parameters([5, 4, 3])
         expected_W1 = np.array(
             [[0.01788628, 0.0043651, 0.00096497, -0.01863493, -0.00277388],
              [-0.00354759, -0.00082741, -0.00627001, -0.00043818, -0.00477218],
@@ -62,5 +66,78 @@ class TestDeepNN(TestCase):
                                    [-0.06712461, -0.00126646, -0.11173103]])
         assert_array_almost_equal(v["db2"], [[0.02344157], [0.16598022], [0.07420442]])
 
+    def test_linear_forward(self):
+        A, W, b = linear_forward_test_case()
 
+        Z, linear_cache = linear_forward(A, W, b)
 
+        assert_array_almost_equal(Z, [[ 3.26295337, -1.23429987]])
+
+    def test_linear_activation_forward(self):
+        A_prev, W, b = linear_activation_forward_test_case()
+        A, linear_activation_cache = linear_activation_forward(A_prev, W, b, activation = "sigmoid")
+        assert_array_almost_equal(A, [[0.96890023, 0.11013289]])
+
+        A, linear_activation_cache = linear_activation_forward(A_prev, W, b, activation = "relu")
+        assert_array_almost_equal(A, [[3.43896131, 0.]])
+
+    def test_L_model_forward(self):
+        X, parameters = L_model_forward_test_case()
+        AL, caches = L_model_forward(X, parameters)
+        assert_array_almost_equal(AL, [[0.17007265, 0.2524272]])
+
+    def test_compute_cost(self):
+        Y, AL = compute_cost_test_case()
+        actual_cost = compute_cost(AL, Y)
+        self.assertEqual(actual_cost, 0.41493159961539694)
+
+    def test_linear_backward(self):
+        dZ, linear_cache = linear_backward_test_case()
+        dA_prev, dW, db = linear_backward(dZ, linear_cache)
+
+        assert_array_almost_equal(dA_prev,
+                                  [[0.51822968, -0.19517421],
+                                   [-0.40506361,  0.15255393],
+                                   [2.37496825, -0.89445391]])
+        assert_array_almost_equal(dW, [[-0.10076895, 1.40685096, 1.64992505]])
+        assert_array_almost_equal(db, [[0.50629448]])
+
+    def test_linear_activation_backward(self):
+        AL, linear_activation_cache = linear_activation_backward_test_case()
+
+        dA_prev, dW, db = linear_activation_backward(AL, linear_activation_cache, activation="sigmoid")
+
+        assert_array_almost_equal(dA_prev,
+                                  [[0.11017994, 0.01105339],
+                                   [0.09466817, 0.00949723],
+                                   [-0.05743092, -0.00576154]])
+
+        assert_array_almost_equal(dW,
+                                  [[0.10266786, 0.09778551, -0.01968084]])
+        assert_array_almost_equal(db, [[-0.05729622]])
+
+        dA_prev, dW, db = linear_activation_backward(AL, linear_activation_cache, activation="relu")
+
+        assert_array_almost_equal(dA_prev,
+                                  [[0.44090989, 0.],
+                                   [0.37883606, 0.],
+                                   [-0.2298228, 0.]])
+        assert_array_almost_equal(dW,
+                                  [[ 0.44513824, 0.37371418, -0.10478989]])
+        assert_array_almost_equal(db , [[-0.20837892]])
+
+    def test_L_model_backwards(self):
+        AL, Y_assess, caches = L_model_backward_test_case()
+        grads = L_model_backward(AL, Y_assess, caches)
+
+        assert_array_almost_equal(grads['dW1'], [[0.41010002, 0.07807203, 0.13798444, 0.10502167],
+                                  [0., 0., 0., 0.],
+                                  [0.05283652, 0.01005865, 0.01777766, 0.0135308]])
+        assert_array_almost_equal(grads['db1'],
+                                  [[-0.22007063],
+                                   [0.],
+                                   [-0.02835349]])
+        assert_array_almost_equal(grads['dA1'], [[0., 0.52257901],
+                                  [0., -0.3269206],
+                                  [0., -0.32070404],
+                                  [0., -0.74079187]])
