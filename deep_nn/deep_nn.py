@@ -1,7 +1,8 @@
 import numpy as np
 import math
 #from deep_nn_utils import sigmoid, sigmoid_backward, relu, relu_backward
-from deep_nn.deep_nn_utils import sigmoid, relu, relu_backward, sigmoid_backward, linear, tanh, tanh_backward, softmax
+from deep_nn.deep_nn_utils import sigmoid, relu, relu_backward, sigmoid_backward, linear, tanh, tanh_backward, softmax, \
+    softmax_backward
 
 
 def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
@@ -19,11 +20,12 @@ def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
 
     np.random.seed(seed)
     m = X.shape[1]
+    num_outputs = Y.shape[0]
     mini_batches = []
 
     permutation = list(np.random.permutation(m))
     shuffled_X = X[:, permutation]
-    shuffled_Y = Y[:, permutation].reshape((1, m))
+    shuffled_Y = Y[:, permutation].reshape((num_outputs, m))
 
     # Step 2: Partition (shuffled_X, shuffled_Y). Minus the end case.
     num_complete_minibatches = math.floor(
@@ -194,7 +196,7 @@ def linear_activation_forward(A_prev, W, b, activation):
     return A, cache
 
 
-def L_model_forward(X, parameters, layers_activations = None):
+def L_model_forward(X, parameters, layers_activations=None, num_outputs=1):
     """
     Implement forward propagation for the [LINEAR->RELU]*(L-1)->LINEAR->SIGMOID computation
 
@@ -227,7 +229,7 @@ def L_model_forward(X, parameters, layers_activations = None):
     AL, cache = linear_activation_forward(A, parameters["W" + str(L)], parameters["b" + str(L)], last_activation_func)
     caches.append(cache)
 
-    assert(AL.shape == (1, X.shape[1]))
+    assert(AL.shape == (num_outputs, X.shape[1]))
 
     return AL, caches
 
@@ -249,7 +251,7 @@ def categorical_crossentropy_cost(AL, Y, m):
      Returns:
      cost -- cross-entropy cost
      """
-    L = -np.sum(Y * np.log(AL), axis=1)
+    L = -np.sum(Y * np.log(AL), axis=0)
     J = (1./m) * np.sum(L)
 
     return J
@@ -375,7 +377,7 @@ def L_model_backward(AL, Y, caches, layers_activations=None, cost_func="binary_c
     if cost_func == "binary_crossentropy":
         dAL = -(np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
     elif cost_func == "MSE":
-        dAL = (AL - Y)
+        dAL = AL - Y
     elif cost_func == 'categorical_crossentropy':
         dAL = Y - AL
 
@@ -419,7 +421,7 @@ def model(X, Y, layers_dims, layers_activations=None, learning_rate=0.0007, mini
     beta -- Momentum hyperparameter
     num_epochs -- number of epochs
     print_cost -- True to print the cost every 1000 epochs
-    cost_func -- "binary_crossentropy" | "MSE"
+    cost_func -- "binary_crossentropy" | "MSE" | "categorical_crossentropy"
 
     Returns:
     parameters -- python dictionary containing your updated parameters
@@ -432,7 +434,7 @@ def model(X, Y, layers_dims, layers_activations=None, learning_rate=0.0007, mini
     costs = []                       # to keep track of the cost
     t = 0                            # initializing the counter required for Adam update
     seed = 10                        # For grading purposes, so that your "random" minibatches are the same as ours
-
+    num_outputs = Y.shape[0]
     # Initialize parameters
     parameters = initialize_parameters(layers_dims)
 
@@ -451,7 +453,7 @@ def model(X, Y, layers_dims, layers_activations=None, learning_rate=0.0007, mini
             (minibatch_X, minibatch_Y) = minibatch
 
             # Forward propagation
-            AL, caches = L_model_forward(minibatch_X, parameters, layers_activations)
+            AL, caches = L_model_forward(minibatch_X, parameters, layers_activations, num_outputs)
 
             # Compute cost
             cost = compute_cost(AL, minibatch_Y, cost_func)
@@ -468,7 +470,7 @@ def model(X, Y, layers_dims, layers_activations=None, learning_rate=0.0007, mini
         if print_cost and i % 100 == 0:
             costs.append(cost)
 
-    return parameters
+    return parameters, costs
 
 
 def predict_dec(parameters, X):

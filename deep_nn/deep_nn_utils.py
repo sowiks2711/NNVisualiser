@@ -180,5 +180,10 @@ def tanh_backward(dA, cache):
     return dZ
 
 
-def softmax_backward(dA, activation_cache):
-    return
+def softmax_backward(dA, cache):
+    Z = cache
+    s = softmax(Z)
+
+    dZ = dA * s * (1. - s)
+
+    return dZ
