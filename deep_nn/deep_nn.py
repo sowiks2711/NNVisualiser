@@ -1,7 +1,7 @@
 import numpy as np
 import math
 #from deep_nn_utils import sigmoid, sigmoid_backward, relu, relu_backward
-from deep_nn.deep_nn_utils import sigmoid, relu, relu_backward, sigmoid_backward
+from deep_nn.deep_nn_utils import sigmoid, relu, relu_backward, sigmoid_backward, linear, tanh, tanh_backward, softmax
 
 
 def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
@@ -123,8 +123,8 @@ def update_parameters_with_momentum(parameters, grads, v, beta, learning_rate):
     for l in range(L):
 
         # compute velocities
-        v["dW" + str(l + 1)] = beta * v["dW" + str(l + 1)] + (1 - beta)  * grads["dW" + str(l + 1)]
-        v["db" + str(l + 1)] = beta * v["db" + str(l + 1)] + (1 - beta)  * grads["db" + str(l + 1)]
+        v["dW" + str(l + 1)] = beta * v["dW" + str(l + 1)] + (1 - beta) * grads["dW" + str(l + 1)]
+        v["db" + str(l + 1)] = beta * v["db" + str(l + 1)] + (1 - beta) * grads["db" + str(l + 1)]
         # update parameters
         parameters["W" + str(l + 1)] = parameters["W" + str(l + 1)] - learning_rate * v["dW" + str(l + 1)]
         parameters["b" + str(l + 1)] = parameters["b" + str(l + 1)] - learning_rate * v["db" + str(l + 1)]
@@ -154,6 +154,7 @@ def linear_forward(A, W, b):
     return Z, cache
 
 
+
 def linear_activation_forward(A_prev, W, b, activation):
     """
     Implement the forward propagation for the LINEAR->ACTIVATION layer
@@ -178,13 +179,22 @@ def linear_activation_forward(A_prev, W, b, activation):
     elif activation == "relu":
         A, activation_cache = relu(Z)
 
+    elif activation == "linear":
+        A, activation_cache = linear(Z)
+
+    elif activation == "tanh":
+        A, activation_cache = tanh(Z)
+
+    elif activation == "softmax":
+        A, activation_cache = softmax(Z)
+
     assert (A.shape == (W.shape[0], A_prev.shape[1]))
     cache = (linear_cache, activation_cache)
 
     return A, cache
 
 
-def L_model_forward(X, parameters):
+def L_model_forward(X, parameters, layers_activations = None):
     """
     Implement forward propagation for the [LINEAR->RELU]*(L-1)->LINEAR->SIGMOID computation
 
@@ -205,21 +215,49 @@ def L_model_forward(X, parameters):
 
     # Implement [LINEAR -> RELU]*(L-1). Add "cache" to the "caches" list.
     for l in range(1, L):
+        current_activation_func = "relu"
+        if layers_activations is not None:
+            current_activation_func = layers_activations[l]
         A_prev = A
-        A, cache = linear_activation_forward(A_prev, parameters["W" + str(l)], parameters["b" + str(l)], "relu")
+        A, cache = linear_activation_forward(A_prev, parameters["W" + str(l)], parameters["b" + str(l)], current_activation_func)
         caches.append(cache)
-
-    AL, cache = linear_activation_forward(A, parameters["W" + str(L)], parameters["b" + str(L)], "sigmoid")
+    last_activation_func = "sigmoid"
+    if layers_activations is not None:
+        last_activation_func = layers_activations[L - 1]
+    AL, cache = linear_activation_forward(A, parameters["W" + str(L)], parameters["b" + str(L)], last_activation_func)
     caches.append(cache)
 
-    assert(AL.shape == (1,X.shape[1]))
+    assert(AL.shape == (1, X.shape[1]))
 
     return AL, caches
 
 
-def compute_cost(AL, Y):
+def quadratic_cost(AL, Y, m):
+    diff = AL - Y
+    cost = (1. / 2) * np.sum(np.multiply(diff, diff))
+    return cost
+
+
+def categorical_crossentropy_cost(AL, Y, m):
     """
-    Implement the cost function defined by equation (7).
+     Implement the categorical_crossentropy cost function.
+
+     Arguments:
+     AL -- probability vector corresponding to your label predictions, shape (categories, number of examples)
+     Y -- one hotencoded true "label" vector
+
+     Returns:
+     cost -- cross-entropy cost
+     """
+    L = -np.sum(Y * np.log(AL), axis=1)
+    J = (1./m) * np.sum(L)
+
+    return J
+
+
+def compute_cost(AL, Y, cost_func = "binary_crossentropy"):
+    """
+    Implement the binary_crossentropy cost function.
 
     Arguments:
     AL -- probability vector corresponding to your label predictions, shape (1, number of examples)
@@ -230,13 +268,21 @@ def compute_cost(AL, Y):
     """
 
     m = Y.shape[1]
-
-    logprobs = np.multiply(-np.log(AL),Y) + np.multiply(-np.log(1 - AL), 1 - Y)
-    cost = 1./m * np.sum(logprobs)
-
-    cost = np.squeeze(cost)
+    if cost_func == "binary_crossentropy":
+        cost = binary_crossentropy(AL, Y, m)
+    elif cost_func == "MSE":
+        cost = quadratic_cost(AL, Y, m)
+    elif cost_func == "categorical_crossentropy":
+        cost = categorical_crossentropy_cost(AL, Y, m)
     assert(cost.shape == ())
 
+    return cost
+
+
+def binary_crossentropy(AL, Y, m):
+    logprobs = np.multiply(-np.log(AL), Y) + np.multiply(-np.log(1 - AL), 1 - Y)
+    cost = 1. / m * np.sum(logprobs)
+    cost = np.squeeze(cost)
     return cost
 
 
@@ -288,12 +334,22 @@ def linear_activation_backward(dA, cache, activation):
 
     elif activation == "sigmoid":
         dZ = sigmoid_backward(dA, activation_cache)
+
+    elif activation == "linear":
+        dZ = linear_backward(dA, activation_cache)
+
+    elif activation == "tanh":
+        dZ = tanh_backward(dA, activation_cache)
+
+    elif activation == "softmax":
+        dZ = softmax_backward(dA, activation_cache)
+
     dA_prev, dW, db = linear_backward(dZ, linear_cache)
 
     return dA_prev, dW, db
 
 
-def L_model_backward(AL, Y, caches):
+def L_model_backward(AL, Y, caches, layers_activations=None, cost_func="binary_crossentropy"):
     """
     Implement the backward propagation for the [LINEAR->RELU] * (L-1) -> LINEAR -> SIGMOID group
 
@@ -316,25 +372,39 @@ def L_model_backward(AL, Y, caches):
     Y = Y.reshape(AL.shape)  # after this line, Y is the same shape as AL
 
     # Initializing the backpropagation
-    dAL = -(np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
+    if cost_func == "binary_crossentropy":
+        dAL = -(np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
+    elif cost_func == "MSE":
+        dAL = (AL - Y)
+    elif cost_func == 'categorical_crossentropy':
+        dAL = Y - AL
 
-    # Lth layer (SIGMOID -> LINEAR) gradients. Inputs: "AL, Y, caches". Outputs: "grads["dAL"], grads["dWL"], grads["dbL"]
+
+    last_activation_func = "sigmoid"
+    if layers_activations is not None:
+        last_activation_func = layers_activations[L - 1]
+
+
+    # Lth layer (ACTIVATION_FUNC -> LINEAR) gradients. Inputs: "AL, Y, caches". Outputs: "grads["dAL"], grads["dWL"], grads["dbL"]
     grads["dA" + str(L)], grads["dW" + str(L)], grads["db" + str(L)] = linear_activation_backward(dAL, caches[L - 1],
-                                                                                                  "sigmoid")
+                                                                                                  last_activation_func)
 
     for l in reversed(range(L - 1)):
-        # lth layer: (RELU -> LINEAR) gradients.
-        # Inputs: "grads["dA" + str(l + 2)], caches". Outputs: "grads["dA" + str(l + 1)],
+        # lth layer: (ACTIVATION_FUNC -> LINEAR) gradients.
+        # Inputs: "grads["dA" + str(l + 2)], caches, layers_activation[l]". Outputs: "grads["dA" + str(l + 1)],
         #                                                       grads["dW" + str(l + 1)],
         #                                                       grads["db" + str(l + 1)]
-        current_layer_grads = linear_activation_backward(grads["dA" + str(l + 2)], caches[l], "relu")
+        current_activation_func = "relu"
+        if layers_activations is not None:
+            current_activation_func = layers_activations[l]
+        current_layer_grads = linear_activation_backward(grads["dA" + str(l + 2)], caches[l], current_activation_func)
         grads["dA" + str(l + 1)], grads["dW" + str(l + 1)], grads["db" + str(l + 1)] = current_layer_grads
 
     return grads
 
 
-def model(X, Y, layers_dims, learning_rate=0.0007, mini_batch_size=64, beta=0.9,
-          num_epochs=10000, print_cost=True):
+def model(X, Y, layers_dims, layers_activations=None, learning_rate=0.0007, mini_batch_size=64, beta=0.9,
+          num_epochs=10000, print_cost=True, cost_func="binary_crossentropy"):
     """
     L-layer neural network model run with momentum optimizer.
 
@@ -342,15 +412,21 @@ def model(X, Y, layers_dims, learning_rate=0.0007, mini_batch_size=64, beta=0.9,
     X -- input data, of shape (2, number of examples)
     Y -- true "label" vector (1 for blue dot / 0 for red dot), of shape (1, number of examples)
     layers_dims -- python list, containing the size of each layer
+    layers_activations -- python list of strings with names of common activation functions corresponding to
+                          "relu", "tanh", "sigmoid", "linear", "softmax"
     learning_rate -- the learning rate, scalar.
     mini_batch_size -- the size of a mini batch
     beta -- Momentum hyperparameter
     num_epochs -- number of epochs
     print_cost -- True to print the cost every 1000 epochs
+    cost_func -- "binary_crossentropy" | "MSE"
 
     Returns:
     parameters -- python dictionary containing your updated parameters
     """
+    if layers_activations is not None:
+        assert len(layers_dims) == len(layers_activations)
+
 
     L = len(layers_dims)             # number of layers in the neural networks
     costs = []                       # to keep track of the cost
@@ -375,13 +451,13 @@ def model(X, Y, layers_dims, learning_rate=0.0007, mini_batch_size=64, beta=0.9,
             (minibatch_X, minibatch_Y) = minibatch
 
             # Forward propagation
-            AL, caches = L_model_forward(minibatch_X, parameters)
+            AL, caches = L_model_forward(minibatch_X, parameters, layers_activations)
 
             # Compute cost
-            cost = compute_cost(AL, minibatch_Y)
+            cost = compute_cost(AL, minibatch_Y, cost_func)
 
             # Backward propagation
-            grads = L_model_backward(AL, minibatch_Y, caches)
+            grads = L_model_backward(AL, minibatch_Y, caches, layers_activations, cost_func)
 
             # Update parameters
             parameters, v = update_parameters_with_momentum(parameters, grads, v, beta, learning_rate)
@@ -413,8 +489,24 @@ def predict_dec(parameters, X):
 
     return predictions
 
+def predict(parameters, X):
+    """
+    This function is used to predict the results of a  L-layer neural network.
 
-def predict(X, y, parameters):
+    Arguments:
+    X -- data set of examples you would like to label
+    parameters -- parameters of the trained model
+
+    Returns:
+    p -- predictions for the given dataset X
+    """
+
+    # Forward propagation
+    probas, caches = L_model_forward(X, parameters)
+
+    return probas
+
+def predict_class(X, y, parameters):
     """
     This function is used to predict the results of a  L-layer neural network.
 

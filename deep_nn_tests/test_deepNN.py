@@ -141,3 +141,19 @@ class TestDeepNN(TestCase):
                                   [0., -0.3269206],
                                   [0., -0.32070404],
                                   [0., -0.74079187]])
+
+    def test_L_model_backwards_explicit_activations(self):
+        AL, Y_assess, caches = L_model_backward_test_case()
+        grads = L_model_backward(AL, Y_assess, caches, ["relu", "sigmoid"])
+
+        assert_array_almost_equal(grads['dW1'], [[0.41010002, 0.07807203, 0.13798444, 0.10502167],
+                                  [0., 0., 0., 0.],
+                                  [0.05283652, 0.01005865, 0.01777766, 0.0135308]])
+        assert_array_almost_equal(grads['db1'],
+                                  [[-0.22007063],
+                                   [0.],
+                                   [-0.02835349]])
+        assert_array_almost_equal(grads['dA1'], [[0., 0.52257901],
+                                  [0., -0.3269206],
+                                  [0., -0.32070404],
+                                  [0., -0.74079187]])
