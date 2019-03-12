@@ -3,7 +3,7 @@ import math
 #from deep_nn_utils import sigmoid, sigmoid_backward, relu, relu_backward
 from deep_nn.deep_nn_utils import sigmoid, relu, relu_backward, sigmoid_backward, linear, tanh, tanh_backward, softmax, \
     softmax_backward
-
+from IPython.core.debugger import set_trace
 
 def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
     """
@@ -223,9 +223,10 @@ def L_model_forward(X, parameters, layers_activations=None, num_outputs=1):
         A_prev = A
         A, cache = linear_activation_forward(A_prev, parameters["W" + str(l)], parameters["b" + str(l)], current_activation_func)
         caches.append(cache)
+
     last_activation_func = "sigmoid"
     if layers_activations is not None:
-        last_activation_func = layers_activations[L - 1]
+        last_activation_func = layers_activations[L]
     AL, cache = linear_activation_forward(A, parameters["W" + str(L)], parameters["b" + str(L)], last_activation_func)
     caches.append(cache)
 
@@ -250,7 +251,7 @@ def categorical_crossentropy_cost(AL, Y, m):
 
      Returns:
      cost -- cross-entropy cost
-     """
+    """
     L = -np.sum(Y * np.log(AL), axis=0)
     J = (1./m) * np.sum(L)
 
@@ -381,17 +382,16 @@ def L_model_backward(AL, Y, caches, layers_activations=None, cost_func="binary_c
     elif cost_func == 'categorical_crossentropy':
         dAL = Y - AL
 
-
     last_activation_func = "sigmoid"
     if layers_activations is not None:
-        last_activation_func = layers_activations[L - 1]
+        last_activation_func = layers_activations[L]
 
 
     # Lth layer (ACTIVATION_FUNC -> LINEAR) gradients. Inputs: "AL, Y, caches". Outputs: "grads["dAL"], grads["dWL"], grads["dbL"]
     grads["dA" + str(L)], grads["dW" + str(L)], grads["db" + str(L)] = linear_activation_backward(dAL, caches[L - 1],
                                                                                                   last_activation_func)
 
-    for l in reversed(range(L - 1)):
+    for l in reversed(range(L-1)):
         # lth layer: (ACTIVATION_FUNC -> LINEAR) gradients.
         # Inputs: "grads["dA" + str(l + 2)], caches, layers_activation[l]". Outputs: "grads["dA" + str(l + 1)],
         #                                                       grads["dW" + str(l + 1)],

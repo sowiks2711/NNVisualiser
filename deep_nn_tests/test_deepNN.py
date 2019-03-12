@@ -71,7 +71,7 @@ class TestDeepNN(TestCase):
 
         Z, linear_cache = linear_forward(A, W, b)
 
-        assert_array_almost_equal(Z, [[ 3.26295337, -1.23429987]])
+        assert_array_almost_equal(Z, [[3.26295337, -1.23429987]])
 
     def test_linear_activation_forward(self):
         A_prev, W, b = linear_activation_forward_test_case()
@@ -144,7 +144,7 @@ class TestDeepNN(TestCase):
 
     def test_L_model_backwards_explicit_activations(self):
         AL, Y_assess, caches = L_model_backward_test_case()
-        grads = L_model_backward(AL, Y_assess, caches, ["relu", "sigmoid"])
+        grads = L_model_backward(AL, Y_assess, caches, ["relu", "relu", "sigmoid"])
 
         assert_array_almost_equal(grads['dW1'], [[0.41010002, 0.07807203, 0.13798444, 0.10502167],
                                   [0., 0., 0., 0.],

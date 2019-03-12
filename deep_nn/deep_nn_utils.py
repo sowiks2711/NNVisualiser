@@ -1,4 +1,5 @@
 import numpy as np
+from IPython.core.debugger import set_trace
 
 def sigmoid(Z):
     """
@@ -87,9 +88,10 @@ def softmax(Z):
     cache -- a python dictionary containing "A" ; stored for computing the backward pass efficiently
     """
     cache = Z
-    shiftx = Z - np.max(Z)
+    shiftx = Z - np.max(Z, axis=0, keepdims=True)
     exps = np.exp(shiftx)
-    A = exps / np.sum(exps)
+    A = exps / np.sum(exps, axis=0, keepdims=True)
+
     return A, cache
 
 
@@ -181,9 +183,9 @@ def tanh_backward(dA, cache):
 
 
 def softmax_backward(dA, cache):
-    Z = cache
-    s = softmax(Z)
 
+    Z = cache
+    s, _ = softmax(Z)
     dZ = dA * s * (1. - s)
 
     return dZ
