@@ -361,7 +361,7 @@ def L_model_backward(AL, Y, caches, layers_activations=None, cost_func="binary_c
     Y -- true "label" vector (containing 0 if non-cat, 1 if cat)
     caches -- list of caches containing:
                 every cache of linear_activation_forward() with "relu" (it's caches[l], for l in range(L-1) i.e l = 0...L-2)
-                the cache of linear_activation_forward() with "sigmoid" (it's caches[L-1])
+                the cache of linear_activation_forward() with "sigmoid. lenear or softmax" (it's caches[L-1])
 
     Returns:
     grads -- A dictionary with the gradients
@@ -380,7 +380,7 @@ def L_model_backward(AL, Y, caches, layers_activations=None, cost_func="binary_c
     elif cost_func == "MSE":
         dAL = AL - Y
     elif cost_func == 'categorical_crossentropy':
-        dAL = Y - AL
+        dAL = AL - Y
 
     last_activation_func = "sigmoid"
     if layers_activations is not None:
