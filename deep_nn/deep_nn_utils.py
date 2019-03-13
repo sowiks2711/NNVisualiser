@@ -49,7 +49,7 @@ def linear(Z):
     cache -- a python dictionary containing "A" ; stored for computing the backward pass efficiently
     """
 
-    A = Z
+    A = np.array(Z, copy=True)
 
     assert (A.shape == Z.shape)
 
@@ -140,7 +140,7 @@ def sigmoid_backward(dA, cache):
     return dZ
 
 
-def linear_backward(dA, cache):
+def linear_func_backward(dA, cache):
     """
     Implement the backward propagation for a single linear unit.
 

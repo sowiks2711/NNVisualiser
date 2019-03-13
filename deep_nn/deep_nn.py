@@ -2,8 +2,7 @@ import numpy as np
 import math
 #from deep_nn_utils import sigmoid, sigmoid_backward, relu, relu_backward
 from deep_nn.deep_nn_utils import sigmoid, relu, relu_backward, sigmoid_backward, linear, tanh, tanh_backward, softmax, \
-    softmax_backward
-from IPython.core.debugger import set_trace
+    softmax_backward, linear_func_backward
 
 def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
     """
@@ -341,8 +340,7 @@ def linear_activation_backward(dA, cache, activation):
         dZ = sigmoid_backward(dA, activation_cache)
 
     elif activation == "linear":
-        set_trace()
-        dZ = linear_backward(dA, activation_cache)
+        dZ = linear_func_backward(dA, activation_cache)
 
     elif activation == "tanh":
         dZ = tanh_backward(dA, activation_cache)
@@ -490,7 +488,6 @@ def predict_dec(parameters, X):
     """
 
     # Forward propagation
-    set_trace()
     probas, caches = L_model_forward(X, parameters)
     predictions = (probas > 0.5)
 
