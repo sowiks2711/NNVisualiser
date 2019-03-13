@@ -196,7 +196,7 @@ def linear_activation_forward(A_prev, W, b, activation):
     return A, cache
 
 
-def L_model_forward(X, parameters, layers_activations=None, num_outputs=1):
+def L_model_forward(X, parameters, layers_activations=None):
     """
     Implement forward propagation for the [LINEAR->RELU]*(L-1)->LINEAR->SIGMOID computation
 
@@ -214,6 +214,7 @@ def L_model_forward(X, parameters, layers_activations=None, num_outputs=1):
     caches = []
     A = X
     L = len(parameters) // 2                  # number of layers in the neural network
+    num_outputs = parameters["W" + str(L)].shape[0]
 
     # Implement [LINEAR -> RELU]*(L-1). Add "cache" to the "caches" list.
     for l in range(1, L):
@@ -230,6 +231,8 @@ def L_model_forward(X, parameters, layers_activations=None, num_outputs=1):
     AL, cache = linear_activation_forward(A, parameters["W" + str(L)], parameters["b" + str(L)], last_activation_func)
     caches.append(cache)
 
+    if AL.shape != (parameters["W" + str(L)].shape[0], X.shape[1]):
+        set_trace()
     assert(AL.shape == (num_outputs, X.shape[1]))
 
     return AL, caches
@@ -437,6 +440,7 @@ def model(X, Y, layers_dims, layers_activations=None, learning_rate=0.0007, mini
     num_outputs = Y.shape[0]
     # Initialize parameters
     parameters = initialize_parameters(layers_dims)
+    assert num_outputs == layers_dims[-1]
 
     v = initialize_velocity(parameters)
 
@@ -453,7 +457,7 @@ def model(X, Y, layers_dims, layers_activations=None, learning_rate=0.0007, mini
             (minibatch_X, minibatch_Y) = minibatch
 
             # Forward propagation
-            AL, caches = L_model_forward(minibatch_X, parameters, layers_activations, num_outputs)
+            AL, caches = L_model_forward(minibatch_X, parameters, layers_activations)
 
             # Compute cost
             cost = compute_cost(AL, minibatch_Y, cost_func)
