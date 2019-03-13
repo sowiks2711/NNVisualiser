@@ -186,6 +186,7 @@ def softmax_backward(dA, cache):
 
     Z = cache
     s, _ = softmax(Z)
+
     dZ = dA * s * (1. - s)
 
     return dZ

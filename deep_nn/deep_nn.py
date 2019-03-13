@@ -214,6 +214,7 @@ def L_model_forward(X, parameters, layers_activations=None):
     caches = []
     A = X
     L = len(parameters) // 2                  # number of layers in the neural network
+
     num_outputs = parameters["W" + str(L)].shape[0]
 
     # Implement [LINEAR -> RELU]*(L-1). Add "cache" to the "caches" list.
@@ -231,8 +232,6 @@ def L_model_forward(X, parameters, layers_activations=None):
     AL, cache = linear_activation_forward(A, parameters["W" + str(L)], parameters["b" + str(L)], last_activation_func)
     caches.append(cache)
 
-    if AL.shape != (parameters["W" + str(L)].shape[0], X.shape[1]):
-        set_trace()
     assert(AL.shape == (num_outputs, X.shape[1]))
 
     return AL, caches
@@ -342,6 +341,7 @@ def linear_activation_backward(dA, cache, activation):
         dZ = sigmoid_backward(dA, activation_cache)
 
     elif activation == "linear":
+        set_trace()
         dZ = linear_backward(dA, activation_cache)
 
     elif activation == "tanh":
@@ -490,12 +490,13 @@ def predict_dec(parameters, X):
     """
 
     # Forward propagation
+    set_trace()
     probas, caches = L_model_forward(X, parameters)
     predictions = (probas > 0.5)
 
     return predictions
 
-def predict(parameters, X):
+def predict(parameters, X, layers):
     """
     This function is used to predict the results of a  L-layer neural network.
 
@@ -508,7 +509,7 @@ def predict(parameters, X):
     """
 
     # Forward propagation
-    probas, caches = L_model_forward(X, parameters)
+    probas, caches = L_model_forward(X, parameters, layers_activations=layers)
 
     return probas
 
