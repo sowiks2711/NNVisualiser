@@ -255,6 +255,13 @@ class DeepNN:
 class ForwardPropagator:
     def __init__(self, layers_activations):
         self.layers_activations = layers_activations
+        self.activation_functions = {
+            "sigmoid": sigmoid,
+            "relu": relu,
+            "linear": linear,
+            "tanh": tanh,
+            "softmax": softmax
+        }
 
     def linear_forward(self, A, W, b):
         """
@@ -295,20 +302,7 @@ class ForwardPropagator:
 
         Z, linear_cache = self.linear_forward(A_prev, W, b)
 
-        if activation == "sigmoid":
-            A, activation_cache = sigmoid(Z)
-
-        elif activation == "relu":
-            A, activation_cache = relu(Z)
-
-        elif activation == "linear":
-            A, activation_cache = linear(Z)
-
-        elif activation == "tanh":
-            A, activation_cache = tanh(Z)
-
-        elif activation == "softmax":
-            A, activation_cache = softmax(Z)
+        A, activation_cache = self.activation_functions[activation](Z)
 
         assert (A.shape == (W.shape[0], A_prev.shape[1]))
         cache = (linear_cache, activation_cache)
@@ -358,6 +352,13 @@ class BackwardPropagator:
     def __init__(self, layers_activations, loss):
         self.layers_activations = layers_activations
         self.loss = loss
+        self.activation_backward_functions = {
+            "relu": relu_backward,
+            "sigmoid": sigmoid_backward,
+            "linear": linear_func_backward,
+            "tanh": tanh_backward,
+            "softmax": softmax_backward
+        }
 
     def linear_backward(self, dZ, cache):
         """
@@ -401,20 +402,7 @@ class BackwardPropagator:
         """
         linear_cache, activation_cache = cache
 
-        if activation == "relu":
-            dZ = relu_backward(dA, activation_cache)
-
-        elif activation == "sigmoid":
-            dZ = sigmoid_backward(dA, activation_cache)
-
-        elif activation == "linear":
-            dZ = linear_func_backward(dA, activation_cache)
-
-        elif activation == "tanh":
-            dZ = tanh_backward(dA, activation_cache)
-
-        elif activation == "softmax":
-            dZ = softmax_backward(dA, activation_cache)
+        dZ = self.activation_backward_functions[activation](dA, activation_cache)
 
         dA_prev, dW, db = linear_backward(dZ, linear_cache)
 
