@@ -1,7 +1,7 @@
 import math
 
 from NNVisualisation import NNVisualisationAdaptedFactory
-from deep_nn.deep_nn import initialize_parameters, linear_backward, binary_crossentropy, quadratic_cost, \
+from deep_nn.deep_nn_utils import binary_crossentropy, quadratic_cost, \
     categorical_crossentropy_cost
 import numpy as np
 
@@ -45,7 +45,7 @@ class DeepNN:
         self.layers_dims = layers_dims
         self.layers_activations = layers_activations
         self.loss = loss
-        self.parameters = initialize_parameters(self.layers_dims)
+        self.parameters = self.initialize_parameters(self.layers_dims)
         self.v = self.initialize_velocity(self.parameters)
         self.forward_propagator = forward_propagator_factory.create(layers_activations)
         self.backward_propagator = backward_propagator_factory.create(layers_activations, loss)
@@ -133,6 +133,31 @@ class DeepNN:
             mini_batches.append(mini_batch)
 
         return mini_batches
+
+
+    def initialize_parameters(self, layer_dims):
+        """
+        Arguments:
+        layer_dims -- python array (list) containing the dimensions of each layer in our network
+
+        Returns:
+        parameters -- python dictionary containing your parameters "W1", "b1", ..., "WL", "bL":
+                        Wl -- weight matrix of shape (layer_dims[l], layer_dims[l-1])
+                        bl -- bias vector of shape (layer_dims[l], 1)
+        """
+
+        np.random.seed(3)
+        parameters = {}
+        L = len(layer_dims)  # number of layers in the network
+
+        for l in range(1, L):
+            parameters["W" + str(l)] = np.random.randn(layer_dims[l], layer_dims[l - 1]) / np.sqrt(layer_dims[l - 1])
+            parameters["b" + str(l)] = np.zeros((layer_dims[l], 1))
+
+            assert (parameters['W' + str(l)].shape == (layer_dims[l], layer_dims[l - 1]))
+            assert (parameters['b' + str(l)].shape == (layer_dims[l], 1))
+
+        return parameters
 
     def initialize_velocity(self, parameters):
         """
@@ -224,7 +249,7 @@ class DeepNN:
 
     def compute_cost(self, AL, Y):
         """
-        Implement the binary_crossentropy cost function.
+        Implement the cost function.
 
         Arguments:
         AL -- probability vector corresponding to your label predictions, shape (1, number of examples)
@@ -244,6 +269,7 @@ class DeepNN:
         assert (cost.shape == ())
 
         return cost
+
 
 
 
@@ -402,7 +428,7 @@ class BackwardPropagator:
 
         dZ = self.activation_backward_functions[activation](dA, activation_cache)
 
-        dA_prev, dW, db = linear_backward(dZ, linear_cache)
+        dA_prev, dW, db = self.linear_backward(dZ, linear_cache)
 
         return dA_prev, dW, db
 

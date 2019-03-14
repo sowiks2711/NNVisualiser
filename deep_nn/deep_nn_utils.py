@@ -190,3 +190,33 @@ def softmax_backward(dA, cache):
     dZ = dA * s * (1. - s)
 
     return dZ
+
+
+def quadratic_cost(AL, Y, m):
+    diff = AL - Y
+    cost = (1. / 2) * np.sum(np.multiply(diff, diff))
+    return cost
+
+
+def categorical_crossentropy_cost(AL, Y, m):
+    """
+     Implement the categorical_crossentropy cost function.
+
+     Arguments:
+     AL -- probability vector corresponding to your label predictions, shape (categories, number of examples)
+     Y -- one hotencoded true "label" vector
+
+     Returns:
+     cost -- cross-entropy cost
+    """
+    L = -np.sum(Y * np.log(AL), axis=0)
+    J = (1. / m) * np.sum(L)
+
+    return J
+
+
+def binary_crossentropy(AL, Y, m):
+    logprobs = np.multiply(-np.log(AL), Y) + np.multiply(-np.log(1 - AL), 1 - Y)
+    cost = 1. / m * np.sum(logprobs)
+    cost = np.squeeze(cost)
+    return cost
