@@ -133,6 +133,7 @@ class NNVisualisation():
         self.input_size = input_size
         self.old_weights = weights
         self.new_weights = weights
+        self.fig = pyplot.figure()
 
     def update(self, i):
         pyplot.gca().clear()
@@ -151,8 +152,8 @@ class NNVisualisation():
 
     def draw(self, new_weights):
         self.new_weights = new_weights
-        fig = pyplot.figure()
-        anim = FuncAnimation(fig, self.update, frames=np.arange(0, 10), interval=1200)
+
+        anim = FuncAnimation(self.fig, self.update, frames=np.arange(0, 10), interval=1200)
         pyplot.show()
         self.old_weights = new_weights
 
