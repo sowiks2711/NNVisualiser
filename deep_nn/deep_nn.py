@@ -222,7 +222,8 @@ def L_model_forward(X, parameters, layers_activations=None):
         if layers_activations is not None:
             current_activation_func = layers_activations[l]
         A_prev = A
-        A, cache = linear_activation_forward(A_prev, parameters["W" + str(l)], parameters["b" + str(l)], current_activation_func)
+        A, cache = linear_activation_forward(A_prev, parameters["W" + str(l)],
+                                             parameters["b" + str(l)], current_activation_func)
         caches.append(cache)
 
     last_activation_func = "sigmoid"
@@ -259,7 +260,7 @@ def categorical_crossentropy_cost(AL, Y, m):
     return J
 
 
-def compute_cost(AL, Y, cost_func = "binary_crossentropy"):
+def compute_cost(AL, Y, cost_func="binary_crossentropy"):
     """
     Implement the binary_crossentropy cost function.
 
@@ -430,14 +431,13 @@ def model(X, Y, layers_dims, layers_activations=None, learning_rate=0.0007, mini
     if layers_activations is not None:
         assert len(layers_dims) == len(layers_activations)
 
-
     L = len(layers_dims)             # number of layers in the neural networks
     costs = []                       # to keep track of the cost
-    t = 0                            # initializing the counter required for Adam update
     seed = 10                        # For grading purposes, so that your "random" minibatches are the same as ours
     num_outputs = Y.shape[0]
     # Initialize parameters
     parameters = initialize_parameters(layers_dims)
+
     assert num_outputs == layers_dims[-1]
 
     v = initialize_velocity(parameters)
@@ -449,8 +449,9 @@ def model(X, Y, layers_dims, layers_activations=None, learning_rate=0.0007, mini
         seed = seed + 1
         minibatches = random_mini_batches(X, Y, mini_batch_size, seed)
 
-        for minibatch in minibatches:
 
+
+        for minibatch in minibatches:
             # Select a minibatch
             (minibatch_X, minibatch_Y) = minibatch
 
@@ -536,6 +537,5 @@ def predict_class(X, y, parameters):
     return p
 
 
-class DeepNN:
-    pass
+
 

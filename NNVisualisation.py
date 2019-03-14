@@ -156,6 +156,9 @@ class NNVisualisation():
         pyplot.show()
         self.old_weights = new_weights
 
+class VisualisatorFactory:
+    def createVisualisator(self, input_size, weights):
+        return NNVisualisation(input_size, weights)
 
 if __name__ == "__main__":
     vis = NNVisualisation(2,[[1, 2, 3, 3, 2, 1], [3, 2, 1, 1, 2, 3, 3, 2, 1], [1, 2, 3]])
