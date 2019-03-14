@@ -1,15 +1,16 @@
 from unittest import TestCase
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+
 import numpy as np
+from numpy.testing import assert_array_almost_equal
+
 from deep_nn.deep_nn import initialize_parameters, random_mini_batches, update_parameters_with_momentum, \
-    linear_forward, linear_activation_forward, L_model_forward, compute_cost, linear_backward, \
+    linear_forward, compute_cost, linear_backward, \
     linear_activation_backward, L_model_backward
 from deep_nn_tests.test_cases import random_mini_batches_test_case, update_parameters_with_momentum_test_case, \
-    linear_forward_test_case, linear_activation_forward_test_case, L_model_forward_test_case, compute_cost_test_case, \
+    linear_forward_test_case, compute_cost_test_case, \
     linear_backward_test_case, linear_activation_backward_test_case, L_model_backward_test_case
 
 
-# noinspection PyPep8Naming
 class TestDeepNN(TestCase):
     def test_initialize_parameters_deep(self):
         parameters = initialize_parameters([5, 4, 3])
@@ -71,20 +72,7 @@ class TestDeepNN(TestCase):
 
         Z, linear_cache = linear_forward(A, W, b)
 
-        assert_array_almost_equal(Z, [[3.26295337, -1.23429987]])
-
-    def test_linear_activation_forward(self):
-        A_prev, W, b = linear_activation_forward_test_case()
-        A, linear_activation_cache = linear_activation_forward(A_prev, W, b, activation = "sigmoid")
-        assert_array_almost_equal(A, [[0.96890023, 0.11013289]])
-
-        A, linear_activation_cache = linear_activation_forward(A_prev, W, b, activation = "relu")
-        assert_array_almost_equal(A, [[3.43896131, 0.]])
-
-    def test_L_model_forward(self):
-        X, parameters = L_model_forward_test_case()
-        AL, caches = L_model_forward(X, parameters)
-        assert_array_almost_equal(AL, [[0.17007265, 0.2524272]])
+        assert_array_almost_equal(Z, [[3.26295337, -1.23429987]])\
 
     def test_compute_cost(self):
         Y, AL = compute_cost_test_case()

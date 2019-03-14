@@ -347,7 +347,7 @@ def linear_activation_backward(dA, cache, activation):
         dZ = tanh_backward(dA, activation_cache)
 
     elif activation == "softmax":
-        dZ = softmax_backward(dA, activation_cache)
+        dZ = softmax_backward(dA , activation_cache)
 
     dA_prev, dW, db = linear_backward(dZ, linear_cache)
 
