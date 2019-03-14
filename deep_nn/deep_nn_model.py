@@ -1,6 +1,6 @@
 import math
 
-from NNVisualisation import VisualisatorFactory
+from NNVisualisation import NNVisualisationAdaptedFactory
 from deep_nn.deep_nn import initialize_parameters, linear_backward, binary_crossentropy, quadratic_cost, \
     categorical_crossentropy_cost
 import numpy as np
@@ -31,7 +31,7 @@ class SequentialBuilder:
     def compile(self, loss, visualisation=False):
         visualisator_factory = None
         if visualisation:
-            visualisator_factory = VisualisatorFactory()
+            visualisator_factory = NNVisualisationAdaptedFactory()
         return DeepNN(ForwardPropagatorFactory(),
                       BackwardPropagatorFactory(),
                       self.layers_dims,
@@ -49,15 +49,17 @@ class DeepNN:
         self.v = self.initialize_velocity(self.parameters)
         self.forward_propagator = forward_propagator_factory.create(layers_activations)
         self.backward_propagator = backward_propagator_factory.create(layers_activations, loss)
-        self.visualisator = None
-        if visualisator_factory is not None:
-            self.initialize_visualisator(layers_dims, visualisator_factory)
+        self.visualisator_factory = visualisator_factory
 
     def fit(self, X, Y, learning_rate=0.01, momentum=0.9, num_epochs=10000, mini_batch_size=64, verbose=True):
         L = len(self.layers_dims)  # number of layers in the neural networks
         costs = []  # to keep track of the cost
         seed = 10  # For grading purposes, so that your "random" minibatches are the same as ours
         num_outputs = Y.shape[0]
+
+        visualisator = None
+        if self.visualisator_factory is not None:
+            visualisator = self.visualisator_factory.createVisualisator(self.layers_dims[0], L, self.parameters)
 
         # Optimization loop
         for i in range(num_epochs):
@@ -87,6 +89,9 @@ class DeepNN:
                 print("Cost after epoch %i: %f" % (i, cost))
             if i % 100 == 0:
                 costs.append(cost)
+
+            if visualisator is not None:
+                visualisator.draw(self.parameters, L)
 
         return self.parameters, costs
 
@@ -240,16 +245,9 @@ class DeepNN:
 
         return cost
 
-    def initialize_visualisator(self, layers_dims, visualisator_factory):
-        if visualisator_factory is not None:
-            weights = self.extract_weights_to_array_form(self.parameters, len(layers_dims))
-            self.visualisator = visualisator_factory.createVisualisator(layers_dims[0], self.parameters)
 
-    def extract_weights_to_array_form(self, parameters, L):
-        weights = []
-        for i in range(1, L):
-            weights.append(parameters["W" + str(i + 1)].reshape(-1).tolist())
-        return weights
+
+
 
 
 class ForwardPropagator:

@@ -156,9 +156,27 @@ class NNVisualisation():
         pyplot.show()
         self.old_weights = new_weights
 
-class VisualisatorFactory:
-    def createVisualisator(self, input_size, weights):
-        return NNVisualisation(input_size, weights)
+
+class NNVisualisationAdaptedFactory:
+    def createVisualisator(self, input_size, L, parameters):
+        return NNVisualisationAdapted(input_size, L, parameters)
+
+
+class NNVisualisationAdapted(NNVisualisation):
+
+    def __init__(self, input_size, L, parameters):
+        weights = self.extract_weights_to_array_form(parameters, L)
+        NNVisualisation.__init__(self, input_size, weights)
+
+    def draw(self, parameters, L):
+        new_weights = self.extract_weights_to_array_form(parameters, L)
+        NNVisualisation.draw(self, new_weights)
+
+    def extract_weights_to_array_form(self, parameters, L):
+        weights = []
+        for i in range(1, L):
+            weights.append(parameters["W" + str(i)].reshape(-1).tolist())
+        return weights
 
 if __name__ == "__main__":
     vis = NNVisualisation(2,[[1, 2, 3, 3, 2, 1], [3, 2, 1, 1, 2, 3, 3, 2, 1], [1, 2, 3]])
