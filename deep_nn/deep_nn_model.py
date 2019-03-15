@@ -25,6 +25,11 @@ class SequentialBuilder:
         self.layers_activations = []
 
     def add_dense(self, nr_of_neurons, activation='relu'):
+        '''
+        Adds neuron layer to model
+        :param nr_of_neurons: intiger number of neurons in layer
+        :param activation: activation function used in neurons of this layer sigmoid | relu | tanh | softmax | linear
+        '''
         self.layers_dims.append(nr_of_neurons)
         self.layers_activations.append(activation)
 
