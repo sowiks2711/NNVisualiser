@@ -29,6 +29,14 @@ class SequentialBuilder:
         self.layers_activations.append(activation)
 
     def compile(self, loss, visualisation=False, disable_bias=False):
+        '''
+        Compiles nn model with layers added with add_dense method
+
+        :param loss: function used to meassure error MSE | binary_crossentropy | categorical_crossentropy
+        :param visualisation: enables visualisation True | False
+        :param disable_bias: disables bias neurons True | False
+        :return: DeepNN object
+        '''
         visualisator_factory = None
         if visualisation:
             visualisator_factory = NNVisualisationAdaptedFactory()
@@ -199,9 +207,6 @@ class DeepNN:
         grads -- python dictionary containing gradients for each parameters:
                         grads['dW' + str(l)] = dWl
                         grads['db' + str(l)] = dbl
-        v -- python dictionary containing the current velocity:
-                        v['dW' + str(l)] = ...
-                        v['db' + str(l)] = ...
         beta -- the momentum hyperparameter, scalar
         learning_rate -- the learning rate, scalar
 
