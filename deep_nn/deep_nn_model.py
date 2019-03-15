@@ -28,7 +28,7 @@ class SequentialBuilder:
         self.layers_dims.append(nr_of_neurons)
         self.layers_activations.append(activation)
 
-    def compile(self, loss, visualisation=False):
+    def compile(self, loss, visualisation=False, disable_bias=False):
         visualisator_factory = None
         if visualisation:
             visualisator_factory = NNVisualisationAdaptedFactory()
@@ -37,11 +37,14 @@ class SequentialBuilder:
                       self.layers_dims,
                       self.layers_activations,
                       loss,
-                      visualisator_factory=visualisator_factory)
+                      visualisator_factory,
+                      disable_bias)
 
 
 class DeepNN:
-    def __init__(self, forward_propagator_factory, backward_propagator_factory, layers_dims, layers_activations, loss, visualisator_factory=None):
+    def __init__(self, forward_propagator_factory, backward_propagator_factory,
+                 layers_dims, layers_activations, loss, visualisator_factory=None,
+                 disable_bias=False):
         self.layers_dims = layers_dims
         self.layers_activations = layers_activations
         self.loss = loss
@@ -50,6 +53,7 @@ class DeepNN:
         self.forward_propagator = forward_propagator_factory.create(layers_activations)
         self.backward_propagator = backward_propagator_factory.create(layers_activations, loss)
         self.visualisator_factory = visualisator_factory
+        self.bias_factor = not disable_bias
 
     def fit(self, X, Y, learning_rate=0.01, momentum=0.9, num_epochs=10000, mini_batch_size=64, verbose=True):
         L = len(self.layers_dims)  # number of layers in the neural networks
@@ -215,7 +219,7 @@ class DeepNN:
             self.v["db" + str(l + 1)] = beta * self.v["db" + str(l + 1)] + (1 - beta) * grads["db" + str(l + 1)]
             # update parameters
             self.parameters["W" + str(l + 1)] = self.parameters["W" + str(l + 1)] - learning_rate * self.v["dW" + str(l + 1)]
-            self.parameters["b" + str(l + 1)] = self.parameters["b" + str(l + 1)] - learning_rate * self.v["db" + str(l + 1)]
+            self.parameters["b" + str(l + 1)] = self.parameters["b" + str(l + 1)] - learning_rate * self.v["db" + str(l + 1)] * self.bias_factor
 
     def predict(self, X):
         """
@@ -269,11 +273,6 @@ class DeepNN:
         assert (cost.shape == ())
 
         return cost
-
-
-
-
-
 
 
 class ForwardPropagator:
