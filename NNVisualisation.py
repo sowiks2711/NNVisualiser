@@ -59,7 +59,7 @@ class Layer():
         y_adjustment = self.neuron_radius * cos(angle)
         line = pyplot.Line2D((neuron1.x - x_adjustment, neuron2.x + x_adjustment),
                              (neuron1.y - y_adjustment, neuron2.y + y_adjustment),
-                             linewidth=thickness * 2, color=str(1 - thickness))
+                             linewidth=thickness * 2, color=( 0.5 - min(0, thickness)/2, 0.5 +  max(0, thickness)/2, 0))
         pyplot.gca().add_line(line)
         return line
 
@@ -121,7 +121,7 @@ class DrawNN():
 
     def draw(self):
         widest_layer = max(self.neural_network)
-        biggest_weight = max([max(layer) for layer in self.weights if layer != []])
+        biggest_weight = max([max([abs(x) for x in layer]) for layer in self.weights if layer != []])
         network = NeuralNetwork(widest_layer, biggest_weight)
         for l, w in zip(self.neural_network, self.weights):
             network.add_layer(l, w)
@@ -152,8 +152,7 @@ class NNVisualisation():
 
     def draw(self, new_weights):
         self.new_weights = new_weights
-
-        anim = FuncAnimation(self.fig, self.update, frames=np.arange(0, 10), interval=1200)
+        anim = FuncAnimation(self.fig, self.update, frames=np.arange(0, 10), interval=200)
         pyplot.show()
         self.old_weights = new_weights
 
@@ -179,6 +178,7 @@ class NNVisualisationAdapted(NNVisualisation):
             weights.append(parameters["W" + str(i)].reshape(-1).tolist())
         return weights
 
+
 if __name__ == "__main__":
-    vis = NNVisualisation(2,[[1, 2, 3, 3, 2, 1], [3, 2, 1, 1, 2, 3, 3, 2, 1], [1, 2, 3]])
-    vis.draw([[10, 2, 3, 3, 2, 10], [3, 2, 10, 10, 2, 3, 3, 2, 10], [10, 2, 3]])
+    vis = NNVisualisation(2, [[1, 2, 3, 3, 2, 1], [3, 2, 1, 1, 2, 3, 3, 2, 1], [1, 2, 3]])
+    vis.draw([[10, 2, 3, 3, 2, 10], [3, 2, 10, -10, 2, 3, 3, 2, -10], [-10, 2, 3]])
