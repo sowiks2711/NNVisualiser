@@ -106,11 +106,11 @@ class DeepNN:
                 print("Cost after epoch %i: %f" % (i, cost))
             if i % 100 == 0:
                 costs.append(cost)
+        retval = None
+        if visualisator is not None:
+            retval = visualisator.draw(self.parameters, L)
 
-            if visualisator is not None:
-                visualisator.draw(self.parameters, L)
-
-        return self.parameters, costs
+        return self.parameters, costs, retval
 
     def random_mini_batches(self, X, Y, mini_batch_size=64, seed=0):
         """

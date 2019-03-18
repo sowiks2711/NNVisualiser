@@ -155,6 +155,7 @@ class NNVisualisation():
         anim = FuncAnimation(self.fig, self.update, frames=np.arange(0, 10), interval=200)
         pyplot.show()
         self.old_weights = new_weights
+        return anim
 
 
 class NNVisualisationAdaptedFactory:
@@ -170,7 +171,7 @@ class NNVisualisationAdapted(NNVisualisation):
 
     def draw(self, parameters, L):
         new_weights = self.extract_weights_to_array_form(parameters, L)
-        NNVisualisation.draw(self, new_weights)
+        return NNVisualisation.draw(self, new_weights)
 
     def extract_weights_to_array_form(self, parameters, L):
         weights = []
