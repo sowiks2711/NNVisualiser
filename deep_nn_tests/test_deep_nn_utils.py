@@ -3,6 +3,7 @@ import numpy as np
 from unittest import TestCase
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
+
 class TestDeepNNUtils(TestCase):
     def test_softmax_one_dimention(self):
         assert_array_almost_equal(nnu.softmax([2, 3, 5, 6])[0], [0.01275478, 0.03467109, 0.25618664, 0.69638749])
