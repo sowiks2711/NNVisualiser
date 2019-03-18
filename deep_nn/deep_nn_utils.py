@@ -216,6 +216,9 @@ def categorical_crossentropy_cost(AL, Y, m):
 
 
 def binary_crossentropy(AL, Y, m):
+    epsilon = np.finfo(np.float32).eps
+    AL[AL == 0] = epsilon
+    AL[AL == 1] = 1 - epsilon
     logprobs = np.multiply(-np.log(AL), Y) + np.multiply(-np.log(1 - AL), 1 - Y)
     cost = 1. / m * np.sum(logprobs)
     cost = np.squeeze(cost)

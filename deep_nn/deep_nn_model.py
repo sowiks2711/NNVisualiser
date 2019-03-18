@@ -464,6 +464,9 @@ class BackwardPropagator:
         Y = Y.reshape(AL.shape)  # after this line, Y is the same shape as AL
 
         # Initializing the backpropagation
+        epsilon = np.finfo(np.float32).eps
+        AL[AL == 0.] = epsilon
+        AL[AL == 1.] = 1 - epsilon
         if self.loss == "binary_crossentropy":
             dAL = -(np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
         elif self.loss == "MSE":
