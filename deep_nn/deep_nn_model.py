@@ -27,7 +27,7 @@ class SequentialBuilder:
     def add_dense(self, nr_of_neurons, activation='relu'):
         '''
         Adds neuron layer to model
-        :param nr_of_neurons: intiger number of neurons in layer
+        :param nr_of_neurons: integer number of neurons in layer
         :param activation: activation function used in neurons of this layer sigmoid | relu | tanh | softmax | linear
         '''
         self.layers_dims.append(nr_of_neurons)
@@ -37,7 +37,7 @@ class SequentialBuilder:
         '''
         Compiles nn model with layers added with add_dense method
 
-        :param loss: function used to meassure error MSE | binary_crossentropy | categorical_crossentropy
+        :param loss: function used to measure error MSE | binary_crossentropy | categorical_crossentropy
         :param visualisation: enables visualisation True | False
         :param disable_bias: disables bias neurons True | False
         :return: DeepNN object
