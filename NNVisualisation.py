@@ -25,10 +25,11 @@ class Layer():
         self.vertical_distance_between_layers = 6
         self.horizontal_distance_between_neurons = 2
         self.neuron_radius = 0.5
-        self.number_of_neurons_in_widest_layer = number_of_neurons_in_widest_layer
+        self.number_of_neurons_in_widest_layer = number_of_neurons_in_widest_layer + 1
         self.previous_layer = self.__get_previous_layer(network)
+        self.network = network
         self.y = self.__calculate_layer_y_position()
-        self.neurons = self.__intialise_neurons(number_of_neurons)
+        self.neurons = self.__intialise_neurons(number_of_neurons + 1)
 
     def __intialise_neurons(self, number_of_neurons):
         neurons = []
@@ -70,13 +71,19 @@ class Layer():
         artists = []
         i = 0
         j = 0
-        for neuron in self.neurons:
+        if layerType != -1:
+            artists.append(self.neurons[0].draw(self.neuron_radius))
+        for neuron in self.neurons[1:]:
+            #print(len(self.neurons[1:]))
             j = 0
             artists.append(neuron.draw(self.neuron_radius))
             if self.previous_layer:
+
                 for previous_layer_neuron in self.previous_layer.neurons:
+                    #print(len(self.previous_layer.neurons))
+
                     artists.append(self.__line_between_two_neurons(neuron, previous_layer_neuron,
-                                                                   self.weights[i + j * len(self.neurons)]))
+                                                                   self.weights[i + j * len(self.neurons[1:])]))
                     j += 1
             i += 1
         # write Text
@@ -118,7 +125,7 @@ class DrawNN():
     def __init__(self, input_size, weights):
         self.neural_network = [input_size]
         for weight in weights:
-            self.neural_network.append(int(len(weight) / self.neural_network[-1]))
+            self.neural_network.append(int(len(weight) / (self.neural_network[-1] + 1)))
         self.weights = weights
         self.weights.insert(0, [])
 
@@ -139,11 +146,13 @@ class NNVisualisation():
         self.list_weights = None
         self.fig = pyplot.figure()
 
-    def __init__(self, input_size, weights, pass_var):
+    def __init__(self, input_size, weights, biases):
         self.input_size = input_size
         self.old_weights = None
         self.new_weights = None
+        self.new_biases = None
         self.list_weights = weights
+        self.list_biases = biases
         self.fig = pyplot.figure()
 
     def update(self, i):
@@ -164,12 +173,14 @@ class NNVisualisation():
     def update_lists(self, i):
         pyplot.gca().clear()
         self.old_weights = self.list_weights[i]
-        self.new_weights = self.list_weights[i + 1]
-
+        self.new_weights = self.list_weights[i]
+        self.new_biases = self.list_biases[i]
         modded_weights = []
-        for old_layer, new_layer in zip(self.old_weights, self.new_weights):
+        for bias_layer, new_layer in zip(self.new_biases, self.new_weights):
             modded_layer = []
-            for old_weight, new_weight in zip(old_layer, new_layer):
+            for bias in bias_layer:
+                modded_layer.append(bias)
+            for new_weight in new_layer:
                 modded_layer.append(new_weight)
             modded_weights.append(modded_layer)
 
@@ -183,7 +194,7 @@ class NNVisualisation():
         self.old_weights = new_weights
 
     def draw(self):
-        anim = FuncAnimation(self.fig, self.update_lists, frames=np.arange(0, len(self.list_weights) - 1), interval=500)
+        anim = FuncAnimation(self.fig, self.update_lists, frames=np.arange(0, len(self.list_weights)), interval=500)
         pyplot.show()
 
 
@@ -204,37 +215,54 @@ class NNVisualisationAdapted(NNVisualisation):
     def __init__(self, input_size, L, parameters, pass_var):
         old_list_weights = []
         list_weights = []
+        old_list_biases = []
+        list_biases = []
         for param in parameters:
             old_list_weights.append(self.extract_weights_to_array_form_from_list(param, L))
+            old_list_biases.append(self.extract_biases_to_array_form_from_list(param, L))
+
         for i in range(0, len(old_list_weights)):
             list_weights.append([])
-            for j in range (0, len(old_list_weights[i])):
+            list_biases.append([])
+            for j in range(0, len(old_list_weights[i])):
                 list_weights[i].append([item for sublist in old_list_weights[i][j] for item in sublist])
-        NNVisualisation.__init__(self, input_size, list_weights, pass_var)
+            for j in range(0, len(old_list_biases[i])):
+                list_biases[i].append([item for sublist in old_list_biases[i][j] for item in sublist])
+        NNVisualisation.__init__(self, input_size, list_weights, list_biases)
 
     def draw(self, parameters, L):
         new_weights = self.extract_weights_to_array_form(parameters, L)
         NNVisualisation.draw(self, new_weights)
+
     def draw(self):
         NNVisualisation.draw(self)
+
     def extract_weights_to_array_form(self, parameters, L):
         weights = []
         for i in range(1, L):
             weights.append(parameters["W" + str(i)].reshape(-1).tolist())
         return weights
+
     def extract_weights_to_array_form_from_list(self, parameters, L):
         weights = []
         for i in range(1, L):
             weights.append(parameters["W" + str(i)])
         return weights
 
+    def extract_biases_to_array_form_from_list(self, parameters, L):
+        weights = []
+        for i in range(1, L):
+            weights.append(parameters["b" + str(i)])
+        return weights
+
 
 if __name__ == "__main__":
     json_filename = sys.argv[1]
     with open(json_filename) as f: json_parameters = json.load(f)
-    #vis = NNVisualisation(2, [[1, 2, 3, 3, 2, 1], [3, 2, 1, 1, 2, 3, 3, 2, 1], [1, 2, 3]])
-    vis = NNVisualisationAdaptedFactory().createVisualisatorList(json_parameters[0], json_parameters[1], json_parameters[2:])
+    # vis = NNVisualisation(2, [[1, 2, 3, 3, 2, 1], [3, 2, 1, 1, 2, 3, 3, 2, 1], [1, 2, 3]])
+    vis = NNVisualisationAdaptedFactory().createVisualisatorList(json_parameters[0], json_parameters[1],
+                                                                 json_parameters[2:])
     weights = json_filename
-    #vis = NNVisualisation(2,json_parameters[2:],None)
+    # vis = NNVisualisation(2,json_parameters[2:],None)
     vis.draw()
-    #vis.draw([[10, 2, 3, 3, 2, 10], [3, 2, 10, -10, 2, 3, 3, 2, -10], [-10, 2, 3]])
+    # vis.draw([[10, 2, 3, 3, 2, 10], [3, 2, 10, -10, 2, 3, 3, 2, -10], [-10, 2, 3]])
