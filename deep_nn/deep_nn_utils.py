@@ -12,7 +12,8 @@ def sigmoid(Z):
     A -- output of sigmoid(z), same shape as Z
     cache -- returns Z as well, useful during backpropagation
     """
-    
+    Z = np.clip(Z, -500, 500)
+
     A = 1/(1+np.exp(-Z))
     cache = Z
     
@@ -132,7 +133,7 @@ def sigmoid_backward(dA, cache):
     
     Z = cache
     
-    s = 1/(1+np.exp(-Z))
+    s, _ = sigmoid(Z)
     dZ = dA * s * (1-s)
     
     assert (dZ.shape == Z.shape)
