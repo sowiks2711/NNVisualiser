@@ -194,7 +194,7 @@ def softmax_backward(dA, cache):
 
 def quadratic_cost(AL, Y, m):
     diff = AL - Y
-    cost = (1. / 2) * np.sum(np.multiply(diff, diff))
+    cost = (1. / m) * np.sum(np.multiply(diff, diff))
     return cost
 
 
