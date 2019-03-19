@@ -137,6 +137,7 @@ class NNVisualisation():
 
     def update(self, i):
         pyplot.gca().clear()
+        #self.old_weights = [[10 + i, 2,2,10], [3,10]]
         old_weight_mod = 1.0 - i * 0.1
         new_weight_mod = i * 0.1
 

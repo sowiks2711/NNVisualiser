@@ -73,9 +73,11 @@ class DeepNN:
         costs = []  # to keep track of the cost
         seed = 10  # For grading purposes, so that your "random" minibatches are the same as ours
         num_outputs = Y.shape[0]
+        retval = None
 
         visualisator = None
         if self.visualisator_factory is not None:
+            print(self.parameters)
             visualisator = self.visualisator_factory.createVisualisator(self.layers_dims[0], L, self.parameters)
 
         # Optimization loop
@@ -106,10 +108,14 @@ class DeepNN:
                 print("Cost after epoch %i: %f" % (i, cost))
             if i % 100 == 0:
                 costs.append(cost)
-        retval = None
-        if visualisator is not None:
-            retval = visualisator.draw(self.parameters, L)
-
+            if visualisator is not None:
+                if i == num_epochs - 1:
+                    print(self.parameters)
+                retval = visualisator.draw(self.parameters, L)
+        retval = visualisator.draw({'W1': np.array([[1.26475132, 0.30865908],
+                      [0.06823401, -1.31768833]]), 'b1': np.array([[0.],
+                                                                [0.]]), 'W2': np.array([[-0.19614308, -0.25085248]]),
+         'b2': np.array([[0.]])},L)
         return self.parameters, costs, retval
 
     def random_mini_batches(self, X, Y, mini_batch_size=64, seed=0):
