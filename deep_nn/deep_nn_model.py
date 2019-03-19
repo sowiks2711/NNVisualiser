@@ -274,6 +274,11 @@ class DeepNN:
         """
 
         m = Y.shape[1]
+
+        epsilon = np.finfo(np.float32).eps
+        AL[AL == 0] = epsilon
+        AL[AL == 1] = 1 - epsilon
+
         if self.loss == "binary_crossentropy":
             cost = binary_crossentropy(AL, Y, m)
         elif self.loss == "MSE":
