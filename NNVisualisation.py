@@ -4,6 +4,8 @@ import numpy as np
 import time
 import seaborn
 from matplotlib.animation import FuncAnimation
+import sys
+import json
 
 
 class Neuron():
@@ -59,7 +61,8 @@ class Layer():
         y_adjustment = self.neuron_radius * cos(angle)
         line = pyplot.Line2D((neuron1.x - x_adjustment, neuron2.x + x_adjustment),
                              (neuron1.y - y_adjustment, neuron2.y + y_adjustment),
-                             linewidth=thickness * 2, color=( 0.5 - min(0, thickness)/2, 0.5 +  max(0, thickness)/2, 0))
+                             linewidth=thickness * 2,
+                             color=(0.5 - min(0, thickness) / 2, 0.5 + max(0, thickness) / 2, 0))
         pyplot.gca().add_line(line)
         return line
 
@@ -133,6 +136,14 @@ class NNVisualisation():
         self.input_size = input_size
         self.old_weights = weights
         self.new_weights = weights
+        self.list_weights = None
+        self.fig = pyplot.figure()
+
+    def __init__(self, input_size, weights, pass_var):
+        self.input_size = input_size
+        self.old_weights = None
+        self.new_weights = None
+        self.list_weights = weights
         self.fig = pyplot.figure()
 
     def update(self, i):
@@ -150,16 +161,38 @@ class NNVisualisation():
         network = DrawNN(self.input_size, modded_weights)
         return network.draw()
 
+    def update_lists(self, i):
+        pyplot.gca().clear()
+        self.old_weights = self.list_weights[i]
+        self.new_weights = self.list_weights[i + 1]
+
+        modded_weights = []
+        for old_layer, new_layer in zip(self.old_weights, self.new_weights):
+            modded_layer = []
+            for old_weight, new_weight in zip(old_layer, new_layer):
+                modded_layer.append(new_weight)
+            modded_weights.append(modded_layer)
+
+        network = DrawNN(self.input_size, modded_weights)
+        return network.draw()
+
     def draw(self, new_weights):
         self.new_weights = new_weights
         anim = FuncAnimation(self.fig, self.update, frames=np.arange(0, 10), interval=200)
         pyplot.show()
         self.old_weights = new_weights
 
+    def draw(self):
+        anim = FuncAnimation(self.fig, self.update_lists, frames=np.arange(0, len(self.list_weights) - 1), interval=500)
+        pyplot.show()
+
 
 class NNVisualisationAdaptedFactory:
     def createVisualisator(self, input_size, L, parameters):
         return NNVisualisationAdapted(input_size, L, parameters)
+
+    def createVisualisatorList(self, input_size, L, parameters_list):
+        return NNVisualisationAdapted(input_size, L, parameters_list, None)
 
 
 class NNVisualisationAdapted(NNVisualisation):
@@ -168,17 +201,40 @@ class NNVisualisationAdapted(NNVisualisation):
         weights = self.extract_weights_to_array_form(parameters, L)
         NNVisualisation.__init__(self, input_size, weights)
 
+    def __init__(self, input_size, L, parameters, pass_var):
+        old_list_weights = []
+        list_weights = []
+        for param in parameters:
+            old_list_weights.append(self.extract_weights_to_array_form_from_list(param, L))
+        for i in range(0, len(old_list_weights)):
+            list_weights.append([])
+            for j in range (0, len(old_list_weights[i])):
+                list_weights[i].append([item for sublist in old_list_weights[i][j] for item in sublist])
+        NNVisualisation.__init__(self, input_size, list_weights, pass_var)
+
     def draw(self, parameters, L):
         new_weights = self.extract_weights_to_array_form(parameters, L)
         NNVisualisation.draw(self, new_weights)
-
+    def draw(self):
+        NNVisualisation.draw(self)
     def extract_weights_to_array_form(self, parameters, L):
         weights = []
         for i in range(1, L):
             weights.append(parameters["W" + str(i)].reshape(-1).tolist())
         return weights
+    def extract_weights_to_array_form_from_list(self, parameters, L):
+        weights = []
+        for i in range(1, L):
+            weights.append(parameters["W" + str(i)])
+        return weights
 
 
 if __name__ == "__main__":
-    vis = NNVisualisation(2, [[1, 2, 3, 3, 2, 1], [3, 2, 1, 1, 2, 3, 3, 2, 1], [1, 2, 3]])
-    vis.draw([[10, 2, 3, 3, 2, 10], [3, 2, 10, -10, 2, 3, 3, 2, -10], [-10, 2, 3]])
+    json_filename = sys.argv[1]
+    with open(json_filename) as f: json_parameters = json.load(f)
+    #vis = NNVisualisation(2, [[1, 2, 3, 3, 2, 1], [3, 2, 1, 1, 2, 3, 3, 2, 1], [1, 2, 3]])
+    vis = NNVisualisationAdaptedFactory().createVisualisatorList(json_parameters[0], json_parameters[1], json_parameters[2:])
+    weights = json_filename
+    #vis = NNVisualisation(2,json_parameters[2:],None)
+    vis.draw()
+    #vis.draw([[10, 2, 3, 3, 2, 10], [3, 2, 10, -10, 2, 3, 3, 2, -10], [-10, 2, 3]])

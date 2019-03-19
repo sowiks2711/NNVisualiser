@@ -1,5 +1,5 @@
 import math
-
+import json
 from NNVisualisation import NNVisualisationAdaptedFactory
 from deep_nn.deep_nn_utils import binary_crossentropy, quadratic_cost, \
     categorical_crossentropy_cost
@@ -78,6 +78,7 @@ class DeepNN:
         if self.visualisator_factory is not None:
             visualisator = self.visualisator_factory.createVisualisator(self.layers_dims[0], L, self.parameters)
 
+        parameter_history = [self.layers_dims[0],L]
         # Optimization loop
         for i in range(num_epochs):
 
@@ -86,6 +87,7 @@ class DeepNN:
             minibatches = self.random_mini_batches(X, Y, mini_batch_size, seed)
 
             for minibatch in minibatches:
+
                 # Select a minibatch
                 (minibatch_X, minibatch_Y) = minibatch
 
@@ -105,11 +107,14 @@ class DeepNN:
             if verbose and i % 1000 == 0:
                 print("Cost after epoch %i: %f" % (i, cost))
             if i % 100 == 0:
+                history_dict = {k: v.tolist() for k, v in self.parameters.items()}
+                parameter_history.append(history_dict)
                 costs.append(cost)
 
             if visualisator is not None:
                 visualisator.draw(self.parameters, L)
-
+        with open('data.json', 'w') as outfile:
+            json.dump(parameter_history, outfile)
         return self.parameters, costs
 
     def random_mini_batches(self, X, Y, mini_batch_size=64, seed=0):
