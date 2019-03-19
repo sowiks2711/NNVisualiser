@@ -12,7 +12,8 @@ def sigmoid(Z):
     A -- output of sigmoid(z), same shape as Z
     cache -- returns Z as well, useful during backpropagation
     """
-    
+    Z = np.clip(Z, -500, 500)
+
     A = 1/(1+np.exp(-Z))
     cache = Z
     
@@ -132,7 +133,7 @@ def sigmoid_backward(dA, cache):
     
     Z = cache
     
-    s = 1/(1+np.exp(-Z))
+    s, _ = sigmoid(Z)
     dZ = dA * s * (1-s)
     
     assert (dZ.shape == Z.shape)
@@ -216,9 +217,6 @@ def categorical_crossentropy_cost(AL, Y, m):
 
 
 def binary_crossentropy(AL, Y, m):
-    epsilon = np.finfo(np.float32).eps
-    AL[AL == 0] = epsilon
-    AL[AL == 1] = 1 - epsilon
     logprobs = np.multiply(-np.log(AL), Y) + np.multiply(-np.log(1 - AL), 1 - Y)
     cost = 1. / m * np.sum(logprobs)
     cost = np.squeeze(cost)
